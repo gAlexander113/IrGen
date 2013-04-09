@@ -8,6 +8,7 @@
 #include "conttblinterface.h"
 #include "statinterface.h"
 #include "statdialog.h"
+#include "graphics.h"
 
 class Program : public QMainWindow, public Ui::MainWindow
 {
@@ -16,10 +17,12 @@ private:
     DataBox *cl_data;
     QLabel *cl_status;
     StatDialog *cl_dialog;
+    Graphics *cl_graphics;
 
     void loadPlugins();
 public:
     Program(QMainWindow *pwgt = 0);
+    ~Program();
 
 private slots:
     void slotOpen();
@@ -27,6 +30,8 @@ private slots:
     void slotLoadContTable();
     void slotLoadStatistics();
     void slotGroup();
+public slots:
+    void slotDrawGraph();
 };
 
 #endif // PROGRAM_H

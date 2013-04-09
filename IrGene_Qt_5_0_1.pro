@@ -7,7 +7,8 @@ SOURCES += \
     program.cpp \
     databox.cpp \
     genedialog.cpp \
-    statdialog.cpp
+    statdialog.cpp \
+    graphics.cpp
 
 HEADERS += \
     main.h \
@@ -19,7 +20,8 @@ HEADERS += \
     conttblinterface.h \
     statinterface.h \
     statwindow.h \
-    statdialog.h
+    statdialog.h \
+    graphics.h
 
 FORMS += \
     forms/mainwindow.ui \

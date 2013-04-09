@@ -15,7 +15,7 @@ QByteArray StatPlugin::statistics(DataBox *data)
 
     int numHealth = 0, numIll = 0; // R наблюдаемое
     int all;
-    QModelIndex index1, index2;
+    QModelIndex index1, index2, index3, index4;
     for (int i = 0; i < data->rowCount(QModelIndex()); ++i)
     {
         index1 = data->index(i, 2);
@@ -49,12 +49,27 @@ QByteArray StatPlugin::statistics(DataBox *data)
     double C;
     C = Xi / (all * qSqrt(data->rowCount(QModelIndex()) - 1));
 
+    double Ka;
+    if (data->rowCount(QModelIndex()) == 2)
+    {
+        index1 = data->index(0, 2); //a
+        index2 = data->index(1, 2); //b
+        index3 = data->index(0, 3); //c
+        index4 = data->index(1, 3); //d
 
+        double tmp1 = data->data(index2, Qt::DisplayRole).toDouble() * data->data(index3, Qt::DisplayRole).toDouble(); // bc
+        double tmp2 = data->data(index1, Qt::DisplayRole).toDouble() * data->data(index4, Qt::DisplayRole).toDouble(); // ad
+
+        Ka = (tmp1 - tmp2)/(tmp1 + tmp2);
+    }
+
+    double num = data->rowCount(QModelIndex());
+    qDebug() << "StatPlugin NUmROWS = " << num;
     /****************Отправляем данные******************/
 
     QByteArray encodedData;
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
-    stream << Xi << Phi << C;
+    stream << Xi << Phi << C << num << Ka;
 
     return encodedData;
 }

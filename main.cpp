@@ -8,6 +8,7 @@ int main(int argc, char **argv)
     Program wgt;
 
     wgt.show();
+    //wgt.slotDrawGraph();
 
     return app.exec();
 }

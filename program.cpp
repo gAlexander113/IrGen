@@ -6,6 +6,8 @@ Program::Program(QMainWindow *pwgt)
     setupUi(this);
 
     cl_data = new DataBox(0, 8);
+    cl_graphics = new Graphics();
+
     tblViewResult->setModel(cl_data);
     tblViewResult->resizeColumnsToContents();
 
@@ -17,9 +19,19 @@ Program::Program(QMainWindow *pwgt)
     connect(btnOpen, SIGNAL(triggered()), this, SLOT(slotOpen()));
     connect(btnSave, SIGNAL(triggered()), this, SLOT(slotSave()));
     connect(action_GroupGom, SIGNAL(triggered()), this, SLOT(slotGroup()));
+    connect(action, SIGNAL(triggered()), this, SLOT(slotDrawGraph()));
 
     cl_status = new QLabel;
     statBar->addWidget(cl_status);
+
+}
+
+Program::~Program()
+{
+    delete cl_data;
+    delete cl_dialog;
+    delete cl_status;
+    delete cl_graphics;
 }
 
 void Program::loadPlugins()
@@ -49,7 +61,7 @@ void Program::loadPlugins()
             QString str = pInterface->name();
 
             /***************************/
-            /*     Инструменты          */
+            /*     Group tools          */
             /***************************/
 
             if (str == tr("по гомозиготности") || str == tr("по max отношения шансов"))
@@ -61,7 +73,7 @@ void Program::loadPlugins()
             else
             {
                 /************************/
-                /* Таблицы сопряженности   */
+                /* Contingency tables   */
                 /************************/
                 QAction *pact = new QAction(str, pobj);
                 connect(pact, SIGNAL(triggered()), this, SLOT(slotLoadContTable()));
@@ -72,7 +84,7 @@ void Program::loadPlugins()
             qDebug() << "this is not ContInterface";
 
         /*******************************/
-        /*          Статистики           */
+        /*          Statistics         */
         /*******************************/
         StatInterface *pStatInt = qobject_cast<StatInterface*> (pobj);
         if (pStatInt)
@@ -309,6 +321,12 @@ void Program::slotGroup()
             pInterface->tblResult(cl_data, "");
             tblViewResult->resizeColumnsToContents();
         }
+}
+
+void Program::slotDrawGraph()
+{
+    cl_graphics->drawGraphFrequency(cl_data);
+    cl_graphics->show();
 }
 
 

@@ -31,7 +31,7 @@ void StatDialog::slotSetData()
     // tmparray 0: Xi
     //          1: Phi
     //          2: C
-    //          3: P
+    //          3: numRows : needed for Ka
     //          4: Ka
 
     if (tmparray[0] == -1)
@@ -40,13 +40,18 @@ void StatDialog::slotSetData()
         leXi->setText(str);
         lePhi->setText(str);
         leC->setText(str);
-        leP->setText(str);
+        leP->setText(str);       
     }
     else
     {
         leXi->setText(QString::number(tmparray[0]));
         lePhi->setText(QString::number(tmparray[1]));
         leC->setText(QString::number(tmparray[2]));
-        // и так далее
     }
+    qDebug() << "statDialog " << tmparray[4] << tmparray.size();
+    if (tmparray[3] == 2)
+        leKa->setText(QString::number(tmparray[4]));
+    else
+        leKa->setText("");
+
 }
