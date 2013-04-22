@@ -53,5 +53,4 @@ void StatDialog::slotSetData()
         leKa->setText(QString::number(tmparray[4]));
     else
         leKa->setText("");
-
 }

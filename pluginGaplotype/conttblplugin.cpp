@@ -13,82 +13,91 @@ void ContTblPlugin::tblResult(DataBox *data, QString nameGene) // nameGene: "nam
 {
     data->dataClear();
 
-    Gene curGene1, curGene2;
+    QList<Gene> curGenes;
 
     QStringList lst = nameGene.split("-");
 
     for (int i = 0; i < data->numGenes(); ++i)
-        if (lst[0] == data->nameGene(i))
+    {
+        for (int j = 0; j < lst.size(); ++j)
         {
-            curGene1 = data->getGene(i);
-            break;
+            if (lst.at(j) == data->nameGene(i))
+            {
+                curGenes.push_back(data->getGene(i));
+                lst.removeAt(j);
+                break;
+            }
         }
-    for (int i =  0; i < data->numGenes(); ++i)
-        if (lst[1] == data->nameGene(i))
-        {
-            curGene2 = data->getGene(i);
-            break;
-        }
+    }
 
     QHash<QString, int> uniqHAlleles;
     QHash<QString, int> uniqIAlleles;
     int allH = 0, allI = 0;
 
-    int maxAlleles = (curGene1.alleles.size() > curGene2.alleles.size()) ? curGene1.alleles.size()
-                                                                         : curGene2.alleles.size();
+    int maxAlleles = curGenes.at(0).alleles.size();
+    for (int i = 1; i < curGenes.size(); ++i)
+        if (curGenes.at(i).alleles.size() > maxAlleles)
+            maxAlleles = curGenes.at(i).alleles.size();
+
 
     for (int i = 0; i < maxAlleles; ++i)
-    {
-        if (curGene1.alleles[i].allele != "0,0" && curGene2.alleles[i].allele != "0,0")
+    {              
+        if (!zeroAlleles(curGenes, i))
         {
-            QStringList strlst1, strlst2;
-            strlst1 = curGene1.alleles[i].allele.split(",");
-            strlst2 = curGene2.alleles[i].allele.split(",");
-            QString al11 = strlst1[0] + "," + strlst2[0];
-            QString al22 = strlst1[1] + "," + strlst2[1];
+            QString al11, al22;
+
+            for (int k = 0; k < curGenes.size(); ++k)
+            {
+                QStringList strlst;
+                strlst = curGenes[k].alleles[i].allele.split(",");
+                al11 += strlst[0] + ",";
+                al22 += strlst[1] + ",";
+            }
+            al11.chop(1);
+            al22.chop(1);
 
             if (uniqHAlleles.contains(al11))
             {
                 int numH = uniqHAlleles.value(al11);
-                numH += curGene1.alleles[i].numHealthy.toInt(); // значения кол-ва здоровых у гена1 и гена2 одинаково
+                numH += curGenes[0].alleles[i].numHealthy.toInt(); // значения кол-ва здоровых у гена1 и гена2 одинаково
                 uniqHAlleles.insert(al11, numH);
             }
             else
             {
-                uniqHAlleles.insert(al11, curGene1.alleles[i].numHealthy.toInt());
+                uniqHAlleles.insert(al11, curGenes[0].alleles[i].numHealthy.toInt());
             }
 
             if (uniqHAlleles.contains(al22))
             {
                 int numH = uniqHAlleles.value(al22);
-                numH += curGene1.alleles[i].numHealthy.toInt();
+                numH += curGenes[0].alleles[i].numHealthy.toInt();
                 uniqHAlleles.insert(al22, numH);
             }
             else
             {
-                uniqHAlleles.insert(al22, curGene1.alleles[i].numHealthy.toInt());
+                uniqHAlleles.insert(al22, curGenes[0].alleles[i].numHealthy.toInt());
             }
 
             if (uniqIAlleles.contains(al11))
             {
                 int numI = uniqIAlleles.value(al11);
-                numI += curGene1.alleles[i].numIll.toInt();
+                numI += curGenes[0].alleles[i].numIll.toInt();
                 uniqIAlleles.insert(al11, numI);
             }
             else
             {
-                uniqIAlleles.insert(al11, curGene1.alleles[i].numIll.toInt());
+                uniqIAlleles.insert(al11, curGenes[0].alleles[i].numIll.toInt());
             }
 
             if (uniqIAlleles.contains(al22))
             {
                 int numI = uniqIAlleles.value(al22);
-                numI += curGene1.alleles[i].numIll.toInt();
+                numI += curGenes[0].alleles[i].numIll.toInt();
                 uniqIAlleles.insert(al22, numI);
             }
             else
             {
-                uniqIAlleles.insert(al22, curGene1.alleles[i].numIll.toInt());
+                uniqIAlleles.insert(al22, curGenes[0].alleles[i].numIll.toInt());
             }
         }
     }
@@ -140,7 +149,7 @@ void ContTblPlugin::tblResult(DataBox *data, QString nameGene) // nameGene: "nam
                 var.freakIll = (double)numI[i] / allI;
                 break;
             case 6: // относ риск
-                processRR(alleles[i], curGene1, curGene2);
+                processRR(alleles[i], curGenes);
                 var.RR = RR;
                 break;
             case 7: // 95% интервал
@@ -156,7 +165,7 @@ void ContTblPlugin::tblResult(DataBox *data, QString nameGene) // nameGene: "nam
 }
 
 
-void ContTblPlugin::processRR(QString allele, Gene gene1, Gene gene2)
+void ContTblPlugin::processRR(QString allele, QList<Gene> genes)
 {
     double a, b, c, d; // коэфф таблицы сопряж.
 
@@ -165,28 +174,36 @@ void ContTblPlugin::processRR(QString allele, Gene gene1, Gene gene2)
     c = 0;
     d = 0;
 
-    int maxNumAl = (gene1.alleles.size() > gene2.alleles.size()) ? gene1.alleles.size()
-                                                                 : gene2.alleles.size();
+    int maxNumAl = genes[0].alleles.size();
+    for (int i = 1; i < genes.size(); ++i)
+        if (genes[i].alleles.size() > maxNumAl)
+            maxNumAl = genes[i].alleles.size();
 
     for (int i = 0; i < maxNumAl; ++i)
     {
-        if (gene1.alleles[i].allele != "0,0" && gene2.alleles[i].allele != "0,0")
+        if (!zeroAlleles(genes, i))
         {
-            QStringList strlst1, strlst2;
-            strlst1 = gene1.alleles[i].allele.split(",");
-            strlst2 = gene2.alleles[i].allele.split(",");
-            QString al11 = strlst1[0] + "," + strlst2[0];
-            QString al22 = strlst1[0] + "," + strlst2[0];
+            QString al11, al22;
+
+            for (int k = 0; k < genes.size(); ++k)
+            {
+                QStringList strlst;
+                strlst = genes[k].alleles[i].allele.split(",");
+                al11 += strlst[0] + ",";
+                al22 += strlst[1] + ",";
+            }
+            al11.chop(1);
+            al22.chop(1);
 
             if (allele == al11 || allele == al22)
             {
-                a += gene1.alleles[i].numHealthy.toDouble();
-                c += gene1.alleles[i].numIll.toDouble();
+                a += genes[0].alleles[i].numHealthy.toDouble();
+                c += genes[0].alleles[i].numIll.toDouble();
             }
             else
             {
-                b += gene1.alleles[i].numHealthy.toDouble();
-                d += gene1.alleles[i].numIll.toDouble();
+                b += genes[0].alleles[i].numHealthy.toDouble();
+                d += genes[0].alleles[i].numIll.toDouble();
             }
         }
 
@@ -211,4 +228,12 @@ void ContTblPlugin::processRR(QString allele, Gene gene1, Gene gene2)
     right = qExp(qLn(RR) + V);
 
     confInt = "[" + QString::number(left) + " ; " + QString::number(right) + "]";
+}
+
+bool ContTblPlugin::zeroAlleles(QList<Gene> genes, int i)
+{
+    for (int j = 0; j < genes.size(); ++j)
+        if (genes.at(j).alleles[i].allele == "0,0")
+            return true;
+    return false;
 }

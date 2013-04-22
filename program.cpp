@@ -200,24 +200,19 @@ void Program::slotLoadContTable()
     if (pInterface->name() == QObject::tr("загрузить с учетом гаплотипа"))
     {
         GeneDialog *dialog = new GeneDialog;
+        dialog->setMulitpleSelection(true);
         dialog->setGeneList(lst);
         if (dialog->exec() == QDialog::Accepted)
         {
-            QString genes = dialog->getGene();
-            delete dialog;
-            for (int i = 0; i < lst.size(); ++i)
-                if (lst.at(i) == genes)
-                {
-                    lst.removeAt(i);
-                    break;
-                }
-            dialog = new GeneDialog;
-            dialog->setGeneList(lst);
-            if (dialog->exec() == QDialog::Accepted)
+            QString str = dialog->getGene();
+            QStringList strlst = str.split("-");
+            if (strlst.size() == 1)
             {
-                genes += "-" + dialog->getGene();
-                pInterface->tblResult(cl_data, genes);
+                QMessageBox::information(0, tr("Ошибка"), tr("Выберите несколько генов!"));
+                return;
             }
+            pInterface->tblResult(cl_data, str);
+            tblViewResult->resizeColumnsToContents();
         }
         delete dialog;
     }
@@ -267,9 +262,9 @@ void Program::slotGroup()
         /*Проверка, можно ли сгруппировать*/
         /******************************/
         index = cl_data->index(0, 0);
-        if (cl_data->data(index, Qt::DisplayRole).toString().size() < 2) // если одна аллель
+        if (cl_data->data(index, Qt::DisplayRole).toString().size() != 2) // если не пара аллелей :)
         {
-            QMessageBox::information(0, tr("Предупреждение"), tr("не могу сгрупировать по гомозиготности, одна аллель."));
+            QMessageBox::information(0, tr("Предупреждение"), tr("не могу сгрупировать по гомозиготности."));
             return;
         }
         /****************************/

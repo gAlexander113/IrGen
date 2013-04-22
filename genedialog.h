@@ -9,15 +9,14 @@ class GeneDialog : public QDialog
     Q_OBJECT
 private:
     Ui::GeneChoiceDialog cl_ui;
+    bool isMultipleSelection;
 public:
     GeneDialog(QWidget *pwgt = 0);
 
     void setGeneList(QStringList lst);
-    QString getGene()
-    {
-        QListWidgetItem *pitem = cl_ui.lstWgt->currentItem();
-        return pitem->text();
-    }
+    void setMulitpleSelection(bool sel);
+    QString getGene();
+
 };
 
 #endif // GENEDIALOG_H

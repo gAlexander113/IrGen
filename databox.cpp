@@ -136,7 +136,7 @@ void DataBox::saveData()
     }
 
 
-    QString str = QFileDialog::getSaveFileName(0, QObject::tr("Сохранить"), "", "*.xml");
+    QString str = QFileDialog::getSaveFileName(0, QObject::tr("Сохранить"), "", "*.xml ;; *.html");
 
     if (str.isEmpty())
     {
@@ -144,15 +144,17 @@ void DataBox::saveData()
         return;
     }
 
-    if (!str.contains("xml"))
-        str += ".xml";
+//    if (!str.contains("xml"))
+//        str += ".xml";
 
-    QFile file(str);
-    if (file.open(QIODevice::WriteOnly))
-    {
-        QTextStream(&file) << doc.toString();
-        file.close();
-    }
+//    QFile file(str);
+//    if (file.open(QIODevice::WriteOnly))
+//    {
+//        QTextStream(&file) << doc.toString();
+//        file.close();
+//    }
+
+
 }
 
 

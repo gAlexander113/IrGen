@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QtPlugin>
-#include "../IrGene_Qt_5_0_1/conttblinterface.h"
+#include "../conttblinterface.h"
 
 class ContTblPlugin : public QObject, ContInterface
 {
@@ -13,7 +13,8 @@ class ContTblPlugin : public QObject, ContInterface
 private:
     QString confInt;
     double RR;
-    void processRR(QString allele, Gene gene1, Gene gene2);
+    void processRR(QString allele, QList<Gene> genes);
+    bool zeroAlleles(QList<Gene> genes, int i);
 public:
     ContTblPlugin();
     virtual QString name() const;
