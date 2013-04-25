@@ -34,13 +34,13 @@ void ContTblPlugin::tblResult(DataBox *data, QString nameGene) // nameGene: "nam
     QHash<QString, int> uniqIAlleles;
     int allH = 0, allI = 0;
 
-    int maxAlleles = curGenes.at(0).alleles.size();
+    int minAlleles = curGenes.at(0).alleles.size();
     for (int i = 1; i < curGenes.size(); ++i)
-        if (curGenes.at(i).alleles.size() > maxAlleles)
-            maxAlleles = curGenes.at(i).alleles.size();
+        if (curGenes.at(i).alleles.size() < minAlleles)
+            minAlleles = curGenes.at(i).alleles.size();
 
 
-    for (int i = 0; i < maxAlleles; ++i)
+    for (int i = 0; i < minAlleles; ++i)
     {              
         if (!zeroAlleles(curGenes, i))
         {
@@ -174,12 +174,12 @@ void ContTblPlugin::processRR(QString allele, QList<Gene> genes)
     c = 0;
     d = 0;
 
-    int maxNumAl = genes[0].alleles.size();
+    int minNumAl = genes[0].alleles.size();
     for (int i = 1; i < genes.size(); ++i)
-        if (genes[i].alleles.size() > maxNumAl)
-            maxNumAl = genes[i].alleles.size();
+        if (genes[i].alleles.size() < minNumAl)
+            minNumAl = genes[i].alleles.size();
 
-    for (int i = 0; i < maxNumAl; ++i)
+    for (int i = 0; i < minNumAl; ++i)
     {
         if (!zeroAlleles(genes, i))
         {

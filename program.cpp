@@ -18,8 +18,10 @@ Program::Program(QMainWindow *pwgt)
     connect(btnExit, SIGNAL(triggered()), this, SLOT(close()));
     connect(btnOpen, SIGNAL(triggered()), this, SLOT(slotOpen()));
     connect(btnSave, SIGNAL(triggered()), this, SLOT(slotSave()));
+    connect(btnImport, SIGNAL(triggered()), this, SLOT(slotImportData()));
     connect(action_GroupGom, SIGNAL(triggered()), this, SLOT(slotGroup()));
     connect(action, SIGNAL(triggered()), this, SLOT(slotDrawGraph()));
+
 
     cl_status = new QLabel;
     statBar->addWidget(cl_status);
@@ -99,56 +101,68 @@ void Program::loadPlugins()
     }
 }
 
+void Program::showData()
+{
+    treeInfo->clear();
+    QStringList lst;
+    lst << tr("Данные") << tr("здоровых") << tr("больных");
+    treeInfo->setHeaderLabels(lst);
+
+    QTreeWidgetItem *pmainItem = new QTreeWidgetItem(treeInfo);
+    pmainItem->setText(0, "Гены");
+
+    QTreeWidgetItem *pgeneitem = 0, *pitem = 0;
+    for (int i = 0; i < cl_data->numGenes(); ++i)
+    {
+        pgeneitem = new QTreeWidgetItem(pmainItem);
+        pgeneitem->setText(0, cl_data->nameGene(i));
+        for (int j = 0; j < cl_data->numAlleles(i); ++j)
+        {
+            pitem = new QTreeWidgetItem(pgeneitem);
+            pitem->setText(0, cl_data->allele(i, j));
+            pitem->setText(1, cl_data->numH(i, j));
+            pitem->setText(2, cl_data->numI(i, j));
+        }
+    }
+    treeInfo->setColumnWidth(0, 100);
+    treeInfo->resizeColumnToContents(1);
+    treeInfo->resizeColumnToContents(2);
+}
+
 void Program::slotOpen() // может отображение необработанных данных стоит убрать
 {
-    tblWgtInfo->clear();
-    cl_data->loadData();
-//    cl_data->output();
+    QString filePath = QFileDialog::getOpenFileName(0, QObject::tr("Открыть файл"), "", "*.xml");
 
-    QStringList lst;
+    cl_data->loadData(filePath);
+    cl_data->output();
 
-    for (int i = 0; i < cl_data->numGenes(); ++i)
-        lst << cl_data->nameGene(i);
+    showData();
 
-    lst << QObject::tr("Количество здоровых") << QObject::tr("Количество больных");
-
-    tblWgtInfo->setColumnCount(cl_data->numGenes() + 2);
-    tblWgtInfo->setRowCount(cl_data->numAlleles());
-    tblWgtInfo->setHorizontalHeaderLabels(lst);
-
-    QTableWidgetItem *pitem = 0;
-
-    qDebug() << tblWgtInfo->rowCount() << tblWgtInfo->columnCount();
-    tblWgtInfo->resizeColumnsToContents();
-    int row = tblWgtInfo->rowCount();
-    int col = tblWgtInfo->columnCount();
-    for (int i = 0; i < row; ++i)
-    {
-//        tblWgtInfo->insertRow(i);
-//        qDebug() << "row " << i;
-        for (int j = 0; j < col; ++j)
-        {
-//            qDebug() << "column " << j;
-            if (j < cl_data->numGenes())
-            {
-                QString str = cl_data->allele(j, i);
-                if (str == "0,0")
-                    str = "";
-                pitem = new QTableWidgetItem(str);
-            }
-            else
-                if (j == cl_data->numGenes())
-                    pitem = new QTableWidgetItem(cl_data->numH(0, i));
-            else
-                    if (j == cl_data->numGenes() + 1)
-                        pitem = new QTableWidgetItem(cl_data->numI(0, i));
-
-            pitem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-            tblWgtInfo->setItem(i, j, pitem);
-        }
-        tblWgtInfo->resizeRowsToContents();
-    }
     cl_status->setText(tr("Данные загруженны."));
+}
+
+void Program::slotImportData()
+{
+    ExcelChoiceDialog *dialog = new ExcelChoiceDialog;
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        QString filePathH = dialog->getFilePathH();
+        QString filePathI = dialog->getFilePathI();
+
+        QString str = QApplication::applicationDirPath();
+        QString fileRes = str + "/result.xml";
+        str += "/ConverterXLStoXML.exe";
+        qDebug() << "program path = " << str << " " << filePathH << " " << filePathI << " " << fileRes;
+
+        QProcess process;
+        process.start(str + " " + filePathH + " " + filePathI + " " + fileRes);
+        process.waitForFinished();
+
+        cl_data->loadData(fileRes);
+        showData();
+    }
+    delete dialog;
+
 }
 
 void Program::slotSave()
@@ -262,7 +276,7 @@ void Program::slotGroup()
         /*Проверка, можно ли сгруппировать*/
         /******************************/
         index = cl_data->index(0, 0);
-        if (cl_data->data(index, Qt::DisplayRole).toString().size() != 2) // если не пара аллелей :)
+        if (cl_data->data(index, Qt::DisplayRole).toString().size() != 3) // если не пара аллелей типа "1,1" :)
         {
             QMessageBox::information(0, tr("Предупреждение"), tr("не могу сгрупировать по гомозиготности."));
             return;
@@ -317,6 +331,7 @@ void Program::slotGroup()
             tblViewResult->resizeColumnsToContents();
         }
 }
+
 
 void Program::slotDrawGraph()
 {

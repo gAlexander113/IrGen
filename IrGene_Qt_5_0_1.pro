@@ -8,7 +8,8 @@ SOURCES += \
     databox.cpp \
     genedialog.cpp \
     statdialog.cpp \
-    graphics.cpp
+    graphics.cpp \
+    excelchoicedialog.cpp
 
 HEADERS += \
     main.h \
@@ -21,10 +22,14 @@ HEADERS += \
     statinterface.h \
     statwindow.h \
     statdialog.h \
-    graphics.h
+    graphics.h \
+    exceldialog.h \
+    excelchoicedialog.h
 
 FORMS += \
     forms/mainwindow.ui \
     forms/genechoicedialog.ui \
-    forms/statwindow.ui
+    forms/statwindow.ui \
+    forms/exceldialog.ui
+
 

@@ -7,7 +7,66 @@ DataBox::DataBox(int nrow, int ncol, QObject *pobj)
 {
 }
 
-void DataBox::traverseNode(const QDomNode &node, QString ill, QString healthy)
+//void DataBox::traverseNode(const QDomNode &node, QString ill, QString healthy)
+//{
+//    QDomNode domNode = node.firstChild();
+
+//    while (!domNode.isNull())
+//    {
+//        if (domNode.isElement())
+//        {
+//            QDomElement domElement = domNode.toElement();
+//            if (domElement.tagName() == "set")
+//            {
+//                healthy = domElement.attribute("healthy", "");
+//                ill = domElement.attribute("ill", "");
+//            }
+//            else
+//                if (domElement.tagName() == "gene")
+//                {
+//                    int found = 0;
+
+//                    int i;
+//                    for (i = 0; i < cl_genes.size(); ++i)
+//                    {
+//                        if (cl_genes[i].name == domElement.attribute("name"))
+//                        {
+//                            found = 1;
+//                            break;
+//                        }
+//                    }
+
+//                    if (!found)
+//                    {
+//                        Gene gene;
+//                        gene.name = domElement.attribute("name");
+
+//                        AlleleElement al;
+//                        al.allele = domElement.attribute("alleles");
+//                        al.numHealthy = healthy;
+//                        al.numIll = ill;
+
+//                        gene.alleles.push_back(al);
+
+//                        cl_genes.push_back(gene);
+//                    }
+//                    else
+//                    {
+//                        AlleleElement al;
+//                        al.allele = domElement.attribute("alleles");
+//                        al.numHealthy = healthy;
+//                        al.numIll = ill;
+
+//                        cl_genes[i].alleles.push_back(al);
+//                    }
+//                }
+//        }
+//        traverseNode(domNode, ill, healthy);
+//        domNode = domNode.nextSibling();
+//    }
+//}
+
+void DataBox::traverseNode(const QDomNode &node, int geneInd)
 {
     QDomNode domNode = node.firstChild();
 
@@ -16,68 +75,42 @@ void DataBox::traverseNode(const QDomNode &node, QString ill, QString healthy)
         if (domNode.isElement())
         {
             QDomElement domElement = domNode.toElement();
-            if (domElement.tagName() == "set")
+            if (domElement.tagName() == "gene")
             {
-                healthy = domElement.attribute("healthy", "");
-                ill = domElement.attribute("ill", "");
+                Gene gene;
+                gene.name = domElement.attribute("name");
+                cl_genes.push_back(gene);
+                geneInd++;
             }
-            else
-                if (domElement.tagName() == "gene")
-                {
-                    int found = 0;
 
-                    int i;
-                    for (i = 0; i < cl_genes.size(); ++i)
-                    {
-                        if (cl_genes[i].name == domElement.attribute("name"))
-                        {
-                            found = 1;
-                            break;
-                        }
-                    }
+            if (domElement.tagName() == "allele")
+            {
+                AlleleElement tmpAl;
+                tmpAl.allele = domElement.attribute("name");
+                tmpAl.numIll = domElement.attribute("Ill");
+                tmpAl.numHealthy = domElement.attribute("Healthy");
+                cl_genes[geneInd].alleles.push_back(tmpAl);
+            }
 
-                    if (!found)
-                    {
-                        Gene gene;
-                        gene.name = domElement.attribute("name");
-
-                        AlleleElement al;
-                        al.allele = domElement.attribute("alleles");
-                        al.numHealthy = healthy;
-                        al.numIll = ill;
-
-                        gene.alleles.push_back(al);
-
-                        cl_genes.push_back(gene);
-                    }
-                    else
-                    {
-                        AlleleElement al;
-                        al.allele = domElement.attribute("alleles");
-                        al.numHealthy = healthy;
-                        al.numIll = ill;
-
-                        cl_genes[i].alleles.push_back(al);
-                    }
-                }
         }
-        traverseNode(domNode, ill, healthy);
+        traverseNode(domNode, geneInd);
         domNode = domNode.nextSibling();
     }
+
 }
 
-void DataBox::loadData()
-{
-    QString pathFile = QFileDialog::getOpenFileName(0, QObject::tr("Открыть файл"), "", "*.xml");
 
+void DataBox::loadData(QString filePath)
+{
+    cl_genes.clear();
     QDomDocument domDoc;
-    QFile file(pathFile);
+    QFile file(filePath);
     if (file.open(QIODevice::ReadOnly))
     {
         if (domDoc.setContent(&file))
         {
             QDomElement domElement = domDoc.documentElement();
-            traverseNode(domElement, 0, 0);
+            traverseNode(domElement, -1);
         }
         file.close();
     }
@@ -98,51 +131,51 @@ void DataBox::output()
 
 void DataBox::saveData()
 {
-    QDomDocument doc("data");
-    QDomElement domElemdata = doc.createElement("data");
+//    QDomDocument doc("data");
+//    QDomElement domElemdata = doc.createElement("data");
 
-    doc.appendChild(domElemdata);
+//    doc.appendChild(domElemdata);
 
-    for (int i = 0; i < numAlleles(); ++i)
-    {
-        QDomElement domElSet = doc.createElement("set");
+//    for (int i = 0; i < numAlleles(); ++i)
+//    {
+//        QDomElement domElSet = doc.createElement("set");
 
-        QDomAttr domAttrI = doc.createAttribute("ill");
-        domAttrI.setValue(numI(0, i));
+//        QDomAttr domAttrI = doc.createAttribute("ill");
+//        domAttrI.setValue(numI(0, i));
 
-        QDomAttr domAttrH = doc.createAttribute("healthy");
-        domAttrH.setValue(numH(0, i));
+//        QDomAttr domAttrH = doc.createAttribute("healthy");
+//        domAttrH.setValue(numH(0, i));
 
-        domElSet.setAttributeNode(domAttrI);
-        domElSet.setAttributeNode(domAttrH);
+//        domElSet.setAttributeNode(domAttrI);
+//        domElSet.setAttributeNode(domAttrH);
 
-        for (int j = 0; j < numGenes(); ++j)
-        {
-            QDomElement domElgene = doc.createElement("gene");
+//        for (int j = 0; j < numGenes(); ++j)
+//        {
+//            QDomElement domElgene = doc.createElement("gene");
 
-            QDomAttr domAttrAl = doc.createAttribute("alleles");
-            domAttrAl.setValue(allele(j, i));
+//            QDomAttr domAttrAl = doc.createAttribute("alleles");
+//            domAttrAl.setValue(allele(j, i));
 
-            QDomAttr domAttrName = doc.createAttribute("name");
-            domAttrName.setValue(nameGene(j));
+//            QDomAttr domAttrName = doc.createAttribute("name");
+//            domAttrName.setValue(nameGene(j));
 
-            domElgene.setAttributeNode(domAttrAl);
-            domElgene.setAttributeNode(domAttrName);
+//            domElgene.setAttributeNode(domAttrAl);
+//            domElgene.setAttributeNode(domAttrName);
 
-            domElSet.appendChild(domElgene);
-        }
+//            domElSet.appendChild(domElgene);
+//        }
 
-        domElemdata.appendChild(domElSet);
-    }
+//        domElemdata.appendChild(domElSet);
+//    }
 
 
-    QString str = QFileDialog::getSaveFileName(0, QObject::tr("Сохранить"), "", "*.xml ;; *.html");
+//    QString str = QFileDialog::getSaveFileName(0, QObject::tr("Сохранить"), "", "*.xml ;; *.html");
 
-    if (str.isEmpty())
-    {
-        qDebug() << "no file for save";
-        return;
-    }
+//    if (str.isEmpty())
+//    {
+//        qDebug() << "no file for save";
+//        return;
+//    }
 
 //    if (!str.contains("xml"))
 //        str += ".xml";

@@ -9,6 +9,7 @@
 #include "statinterface.h"
 #include "statdialog.h"
 #include "graphics.h"
+#include "excelchoicedialog.h"
 
 class Program : public QMainWindow, public Ui::MainWindow
 {
@@ -20,12 +21,14 @@ private:
     Graphics *cl_graphics;
 
     void loadPlugins();
+    void showData();
 public:
     Program(QMainWindow *pwgt = 0);
     ~Program();
 
 private slots:
     void slotOpen();
+    void slotImportData();
     void slotSave();
     void slotLoadContTable();
     void slotLoadStatistics();

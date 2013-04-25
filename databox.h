@@ -12,11 +12,12 @@ private:
     int cl_ncolumn;
     QVector<Gene> cl_genes; // сырые данные,
     QVector<DataForAlleles> cl_data; //преобразованные данные, вывод в таблицу
-    void traverseNode(const QDomNode& node, QString ill, QString healthy);
+//    void traverseNode(const QDomNode& node, QString ill, QString healthy);
+    void traverseNode(const QDomNode& node, int geneInd);
 public:
     DataBox(int nrow = 0, int ncol = 0, QObject *pobj = 0);
 
-    void loadData();
+    void loadData(QString filePath);
     void saveData();
     void output();
 
@@ -24,9 +25,17 @@ public:
     {
         return cl_genes.size();
     }
-    int numAlleles()
-    {                
-        return cl_genes[0].alleles.size();
+    int numMaxAlleles()
+    {
+        int max = cl_genes[0].alleles.size();
+        for (int i = 1; i < cl_genes.size(); ++i)
+            if (cl_genes[i].alleles.size() > max)
+                max = cl_genes[i].alleles.size();
+        return max;
+    }
+    int numAlleles(int i)
+    {
+        return cl_genes[i].alleles.size();
     }
     QString nameGene(int i)
     {

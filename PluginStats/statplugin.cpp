@@ -21,11 +21,17 @@ QByteArray StatPlugin::statistics(DataBox *data)
         index1 = data->index(i, 2);
         numHealth += data->data(index1, Qt::DisplayRole).toInt();
         if (data->data(index1, Qt::DisplayRole).toInt() < 5)
+        {
             Xi = -1;
+            break;
+        }
         index1 = data->index(i, 3);
         numIll += data->data(index1, Qt::DisplayRole).toInt();
         if (data->data(index1, Qt::DisplayRole).toInt() < 5)
+        {
             Xi = -1;
+            break;
+        }
     }
 
     all = numHealth + numIll;
@@ -38,7 +44,8 @@ QByteArray StatPlugin::statistics(DataBox *data)
         index2 = data->index(i, 3);
         tmp1 = (double) numHealth * (data->data(index1, Qt::DisplayRole).toInt() + data->data(index2, Qt::DisplayRole).toInt()) / all;
         tmp2 = (double) numIll * (data->data(index1, Qt::DisplayRole).toInt() + data->data(index2, Qt::DisplayRole).toInt()) / all;
-        res += (data->data(index1, Qt::DisplayRole).toDouble() - tmp1 - 0.5) / tmp1 + (data->data(index2, Qt::DisplayRole).toDouble() - tmp2 - 0.5) / tmp2;
+        res += (data->data(index1, Qt::DisplayRole).toDouble() - tmp1 - 0.5) *(data->data(index1, Qt::DisplayRole).toDouble() - tmp1 - 0.5) / tmp1
+                + (data->data(index2, Qt::DisplayRole).toDouble() - tmp2 - 0.5) * (data->data(index2, Qt::DisplayRole).toDouble() - tmp2 - 0.5) / tmp2;
     }
 
     if (Xi != -1) Xi = res;
