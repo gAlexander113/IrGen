@@ -129,65 +129,78 @@ void DataBox::output()
     }
 }
 
-void DataBox::saveData()
-{
-//    QDomDocument doc("data");
-//    QDomElement domElemdata = doc.createElement("data");
+void DataBox::saveData() // TODO :: потом поменять сохранялку на более человеческий вид
+{    
+    QString filename = QFileDialog::getSaveFileName(0, tr("Сохранить"), "", "*.html");
+    QString str;
 
-//    doc.appendChild(domElemdata);
+    str = QString("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Strict//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n"
+           "<html>\n"
+           "<head>\n"
+            " <style type=\"text/css\">"
+            "table { border-spacing: 0; padding:0; border: 1px solid black; }"
+            "th { background-color: #dddddd; padding: 7px; }"
+            "td { border-top: 1px solid #dddddd; padding: 7px; }"
+            "span.red { color: red; font-weight: bold; }"
+            "span.green { color: green; font-weight: bold; }"
+            "</style>"
+            "</head>\n"
+            "<body>\n"
+            "<h2>Результаты</h2>\n"
+            "<table>\n"
+            "<tr>\n"
+            "<th>Наименование</th>\n"
+            "<th>Группа</th>\n"
+            "<th>Здоровые кол-во</th>\n"
+            "<th>Больные кол-во</th>\n"
+            "<th>Здоровые частота</th>\n"
+            "<th>Больные частота</th>\n"
+            "<th>Отношение шансов</th>\n"
+            "<th>95% доверит. инт.</th>\n"
+            "</tr>\n");
 
-//    for (int i = 0; i < numAlleles(); ++i)
-//    {
-//        QDomElement domElSet = doc.createElement("set");
+    for (int i = 0; i < cl_data.size(); ++i)
+    {
+        str += QString("<tr>\n");
+        str += QString("<td>") + cl_data[i].name + QString("</td>");
+        str += QString("<td>") + QString::number(cl_data[i].group) + QString("</td>");
+        str += QString("<td>") + QString::number(cl_data[i].numHealthy) + QString("</td>");
+        str += QString("<td>") + QString::number(cl_data[i].numIll) + QString("</td>");
+        str += QString("<td>") + QString::number(cl_data[i].freakHealthy) + QString("</td>");
+        str += QString("<td>") + QString::number(cl_data[i].freakIll) + QString("</td>");
+        str += QString("<td>") + QString::number(cl_data[i].RR) + QString("</td>");
+        str += QString("<td>");
+        int length = cl_data[i].RRInt.size();
+        QString s = cl_data[i].RRInt.mid(1, length - 2);
+        QStringList strlst = s.split(";");
+        double left = strlst[0].toDouble();
+        double right = strlst[1].toDouble();
+        if (cl_data[i].RR > 1 && left > 1)
+            str += QString("<span class=\"red\">");
+        else
+            if (cl_data[i].RR < 1 && right < 1)
+                str += QString("<span class=\"green\">");
+        else
+                str += QString("<span>");
+        str += cl_data[i].RRInt;
+        str += QString("</span></td>");
 
-//        QDomAttr domAttrI = doc.createAttribute("ill");
-//        domAttrI.setValue(numI(0, i));
+        str += QString("</tr>\n");        
+    }
 
-//        QDomAttr domAttrH = doc.createAttribute("healthy");
-//        domAttrH.setValue(numH(0, i));
+    str  += QString("</table>\n"
+            "</body>\n"
+            "</html>\n");
 
-//        domElSet.setAttributeNode(domAttrI);
-//        domElSet.setAttributeNode(domAttrH);
-
-//        for (int j = 0; j < numGenes(); ++j)
-//        {
-//            QDomElement domElgene = doc.createElement("gene");
-
-//            QDomAttr domAttrAl = doc.createAttribute("alleles");
-//            domAttrAl.setValue(allele(j, i));
-
-//            QDomAttr domAttrName = doc.createAttribute("name");
-//            domAttrName.setValue(nameGene(j));
-
-//            domElgene.setAttributeNode(domAttrAl);
-//            domElgene.setAttributeNode(domAttrName);
-
-//            domElSet.appendChild(domElgene);
-//        }
-
-//        domElemdata.appendChild(domElSet);
-//    }
-
-
-//    QString str = QFileDialog::getSaveFileName(0, QObject::tr("Сохранить"), "", "*.xml ;; *.html");
-
-//    if (str.isEmpty())
-//    {
-//        qDebug() << "no file for save";
-//        return;
-//    }
-
-//    if (!str.contains("xml"))
-//        str += ".xml";
-
-//    QFile file(str);
-//    if (file.open(QIODevice::WriteOnly))
-//    {
-//        QTextStream(&file) << doc.toString();
-//        file.close();
-//    }
-
-
+    if (!filename.contains(".html"))
+        filename += ".html";
+    QFile file(filename);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        QTextStream streamer(&file);
+        streamer << str;
+        file.close();
+    }
 }
 
 

@@ -134,7 +134,7 @@ void Program::slotOpen() // может отображение необработ
     QString filePath = QFileDialog::getOpenFileName(0, QObject::tr("Открыть файл"), "", "*.xml");
 
     cl_data->loadData(filePath);
-    cl_data->output();
+//    cl_data->output();
 
     showData();
 
@@ -331,7 +331,6 @@ void Program::slotGroup()
             tblViewResult->resizeColumnsToContents();
         }
 }
-
 
 void Program::slotDrawGraph()
 {
