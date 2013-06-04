@@ -61,9 +61,15 @@
     <property name="title">
      <string>Файл</string>
     </property>
+    <widget class="QMenu" name="menuDataBases">
+     <property name="title">
+      <string>Базы Данных</string>
+     </property>
+    </widget>
     <addaction name="btnOpen"/>
     <addaction name="btnSave"/>
     <addaction name="btnImport"/>
+    <addaction name="menuDataBases"/>
     <addaction name="separator"/>
     <addaction name="btnExit"/>
    </widget>
@@ -81,8 +87,14 @@
       <string>Функции группировки</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menu_5">
+     <property name="title">
+      <string>Построить Филогенетическое дерево</string>
+     </property>
+    </widget>
     <addaction name="menu_4"/>
     <addaction name="action"/>
+    <addaction name="menu_5"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -140,6 +152,31 @@
   <action name="btnImport">
    <property name="text">
     <string>Импорт из Excel</string>
+   </property>
+  </action>
+  <action name="actOpenPopData">
+   <property name="text">
+    <string>Открыть Популяционные Данные</string>
+   </property>
+  </action>
+  <action name="actBuidTree">
+   <property name="text">
+    <string>Построить Филогенетическое дерево</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>Построить Филогенетическое дерево</string>
+   </property>
+  </action>
+  <action name="actionVcxz">
+   <property name="text">
+    <string>vcxz</string>
+   </property>
+  </action>
+  <action name="actionF">
+   <property name="text">
+    <string>f</string>
    </property>
   </action>
  </widget>

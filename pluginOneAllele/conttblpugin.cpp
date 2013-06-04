@@ -8,22 +8,8 @@ QString ContTblPugin::name() const
 
 void ContTblPugin::tblResult(DataBox *data, QString nameGene)
 {
-        data->dataClear();
-//    tbl->setColumnCount(8);
-
-//    QStringList lst;
-//    lst << QObject::tr("Наименование") << QObject::tr("Группа") << QObject::tr("Здоровые кол-во")
-//        << QObject::tr("Больные кол-во") << QObject::tr("Здоровые частота")
-//        << QObject::tr("Больные частота") << QObject::tr("Относит. риск(RR)")
-//        << QObject::tr("95% доверит. инт.(RR)");
-
-//    tbl->setHorizontalHeaderLabels(lst);
-//    tbl->resizeColumnsToContents();
-
-
-
+    data->dataClear();
     Gene curGene;
-
     int f = 0;
     for (int i = 0; i < data->numGenes(); ++i)
         if (nameGene == data->nameGene(i))
@@ -45,49 +31,58 @@ void ContTblPugin::tblResult(DataBox *data, QString nameGene)
         if (curGene.alleles[i].allele != "0,0")
         {
             QStringList strlst = curGene.alleles[i].allele.split(",");
-            if (uniqHAlleles.contains(strlst[0]))
+            if (strlst[0] != "-1")
             {
-                int numh = uniqHAlleles.value(strlst[0]);
-                numh += curGene.alleles[i].numHealthy.toInt();
-                uniqHAlleles.insert(strlst[0], numh);
-            }
-            else
-            {
-                uniqHAlleles.insert(strlst[0], curGene.alleles[i].numHealthy.toInt());
+                if (uniqHAlleles.contains(strlst[0]))
+                {
+                    int numh = uniqHAlleles.value(strlst[0]);
+                    numh += curGene.alleles[i].numHealthy.toInt();
+                    uniqHAlleles.insert(strlst[0], numh);
+                }
+                else
+                {
+                    uniqHAlleles.insert(strlst[0], curGene.alleles[i].numHealthy.toInt());
+                }
+
+                if (uniqIAlleles.contains(strlst[0]))
+                {
+                    int numi = uniqIAlleles.value(strlst[0]);
+                    numi += curGene.alleles[i].numIll.toInt();
+                    uniqIAlleles.insert(strlst[0], numi);
+                }
+                else
+                {
+                    uniqIAlleles.insert(strlst[0], curGene.alleles[i].numIll.toInt());
+                }
             }
 
-            if (uniqHAlleles.contains(strlst[1]))
+            if (strlst[1] != "-1")
             {
-                int numh = uniqHAlleles.value(strlst[1]);
-                numh += curGene.alleles[i].numHealthy.toInt();
-                uniqHAlleles.insert(strlst[1], numh);
-            }
-            else
-            {
-                uniqHAlleles.insert(strlst[1], curGene.alleles[i].numHealthy.toInt());
+                if (uniqHAlleles.contains(strlst[1]))
+                {
+                    int numh = uniqHAlleles.value(strlst[1]);
+                    numh += curGene.alleles[i].numHealthy.toInt();
+                    uniqHAlleles.insert(strlst[1], numh);
+                }
+                else
+                {
+                    uniqHAlleles.insert(strlst[1], curGene.alleles[i].numHealthy.toInt());
+                }
+
+                if (uniqIAlleles.contains(strlst[1]))
+                {
+                    int numi = uniqIAlleles.value(strlst[1]);
+                    numi += curGene.alleles[i].numIll.toInt();
+                    uniqIAlleles.insert(strlst[1], numi);
+                }
+                else
+                {
+                    uniqIAlleles.insert(strlst[1], curGene.alleles[i].numIll.toInt());
+                }
+
             }
 
-            if (uniqIAlleles.contains(strlst[0]))
-            {
-                int numi = uniqIAlleles.value(strlst[0]);
-                numi += curGene.alleles[i].numIll.toInt();
-                uniqIAlleles.insert(strlst[0], numi);
-            }
-            else
-            {
-                uniqIAlleles.insert(strlst[0], curGene.alleles[i].numIll.toInt());
-            }
 
-            if (uniqIAlleles.contains(strlst[1]))
-            {
-                int numi = uniqIAlleles.value(strlst[1]);
-                numi += curGene.alleles[i].numIll.toInt();
-                uniqIAlleles.insert(strlst[1], numi);
-            }
-            else
-            {
-                uniqIAlleles.insert(strlst[1], curGene.alleles[i].numIll.toInt());
-            }
 
 //            allH += curGene.alleles[i].numHealthy.toInt();
 //            allI += curGene.alleles[i].numIll.toInt();
@@ -167,6 +162,7 @@ void ContTblPugin::tblResult(DataBox *data, QString nameGene)
 //            pitem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 //            tbl->setItem(i, j, pitem);
 //            tbl->resizeRowsToContents();
+            var.geneName = nameGene;
         }
         data->setDataToModel(var);
     }

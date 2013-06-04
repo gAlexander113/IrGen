@@ -159,6 +159,7 @@ void ContTblPlugin::tblResult(DataBox *data, QString nameGene)
 //            pitem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 //            tbl->setItem(i, j, pitem);
 //            tbl->resizeRowsToContents();
+            var.geneName = nameGene;
         }
         data->setDataToModel(var);
     }

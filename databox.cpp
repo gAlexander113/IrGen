@@ -4,83 +4,36 @@ DataBox::DataBox(int nrow, int ncol, QObject *pobj)
     : QAbstractTableModel(pobj)
     , cl_nrow(nrow)
     , cl_ncolumn(ncol)
+    , cl_activePop(0)
 {
+    im = new QImage(500, 500, QImage::Format_ARGB32);
 }
 
-//void DataBox::traverseNode(const QDomNode &node, QString ill, QString healthy)
-//{
-//    QDomNode domNode = node.firstChild();
-
-//    while (!domNode.isNull())
-//    {
-//        if (domNode.isElement())
-//        {
-//            QDomElement domElement = domNode.toElement();
-//            if (domElement.tagName() == "set")
-//            {
-//                healthy = domElement.attribute("healthy", "");
-//                ill = domElement.attribute("ill", "");
-//            }
-//            else
-//                if (domElement.tagName() == "gene")
-//                {
-//                    int found = 0;
-
-//                    int i;
-//                    for (i = 0; i < cl_genes.size(); ++i)
-//                    {
-//                        if (cl_genes[i].name == domElement.attribute("name"))
-//                        {
-//                            found = 1;
-//                            break;
-//                        }
-//                    }
-
-//                    if (!found)
-//                    {
-//                        Gene gene;
-//                        gene.name = domElement.attribute("name");
-
-//                        AlleleElement al;
-//                        al.allele = domElement.attribute("alleles");
-//                        al.numHealthy = healthy;
-//                        al.numIll = ill;
-
-//                        gene.alleles.push_back(al);
-
-//                        cl_genes.push_back(gene);
-//                    }
-//                    else
-//                    {
-//                        AlleleElement al;
-//                        al.allele = domElement.attribute("alleles");
-//                        al.numHealthy = healthy;
-//                        al.numIll = ill;
-
-//                        cl_genes[i].alleles.push_back(al);
-//                    }
-//                }
-//        }
-//        traverseNode(domNode, ill, healthy);
-//        domNode = domNode.nextSibling();
-//    }
-//}
-
-void DataBox::traverseNode(const QDomNode &node, int geneInd)
+void DataBox::traverseNode(const QDomNode &node)
 {
     QDomNode domNode = node.firstChild();
 
     while (!domNode.isNull())
     {
-        if (domNode.isElement())
+        if (domNode.isElement())                        
         {
             QDomElement domElement = domNode.toElement();
+
+            if (domElement.tagName() == "population")
+            {
+                Population popdata;
+                popdata.name = domElement.attribute("name");
+                cl_genes.push_back(popdata);
+//                popInd++;
+//                geneInd = 0;
+            }
+
             if (domElement.tagName() == "gene")
             {
                 Gene gene;
                 gene.name = domElement.attribute("name");
-                cl_genes.push_back(gene);
-                geneInd++;
+                cl_genes[cl_genes.size() - 1].genes.push_back(gene);
+//                geneInd++;
             }
 
             if (domElement.tagName() == "allele")
@@ -89,14 +42,12 @@ void DataBox::traverseNode(const QDomNode &node, int geneInd)
                 tmpAl.allele = domElement.attribute("name");
                 tmpAl.numIll = domElement.attribute("Ill");
                 tmpAl.numHealthy = domElement.attribute("Healthy");
-                cl_genes[geneInd].alleles.push_back(tmpAl);
+                cl_genes[cl_genes.size() - 1].genes[cl_genes[cl_genes.size() - 1].genes.size() - 1].alleles.push_back(tmpAl);
             }
-
         }
-        traverseNode(domNode, geneInd);
+        traverseNode(domNode);
         domNode = domNode.nextSibling();
     }
-
 }
 
 
@@ -110,7 +61,7 @@ void DataBox::loadData(QString filePath)
         if (domDoc.setContent(&file))
         {
             QDomElement domElement = domDoc.documentElement();
-            traverseNode(domElement, -1);
+            traverseNode(domElement);
         }
         file.close();
     }
@@ -118,14 +69,22 @@ void DataBox::loadData(QString filePath)
         qDebug() << "file is not open";
 }
 
+void DataBox::loadData(QSqlQuery *base)
+{
+}
+
 void DataBox::output()
 {
     for (int i = 0; i < cl_genes.size(); ++i)
-    {
+    {        
         qDebug() << cl_genes[i].name;
-        for (int j = 0; j < cl_genes[i].alleles.size(); ++j)
-            qDebug() << cl_genes[i].alleles[j].allele << cl_genes[i].alleles[j].numHealthy
-                     << cl_genes[i].alleles[j].numIll;
+        for (int k = 0; k < cl_genes[i].genes.size(); ++k)
+        {
+            qDebug() << cl_genes[i].genes[k].name;
+            for (int j = 0; j < cl_genes[i].genes[k].alleles.size(); ++j)
+                qDebug() << cl_genes[i].genes[k].alleles[j].allele << cl_genes[i].genes[k].alleles[j].numHealthy
+                         << cl_genes[i].genes[k].alleles[j].numIll;
+        }
     }
 }
 
@@ -147,6 +106,8 @@ void DataBox::saveData() // TODO :: потом поменять сохранял
             "</head>\n"
             "<body>\n"
             "<h2>Результаты</h2>\n"
+            "<p> Популяция: " + cl_genes[cl_activePop].name + "<br>\n"
+            "Ген: " + cl_data[0].geneName + "</p>"
             "<table>\n"
             "<tr>\n"
             "<th>Наименование</th>\n"
@@ -203,7 +164,6 @@ void DataBox::saveData() // TODO :: потом поменять сохранял
     }
 }
 
-
 QVariant DataBox::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
@@ -229,6 +189,8 @@ QVariant DataBox::data(const QModelIndex &index, int role) const
             return cl_data[index.row()].RR;
         case 7: // 95% интервал
             return cl_data[index.row()].RRInt;
+        case 8: // имя гена
+            return cl_data[index.row()].geneName;
         default:
             qDebug() << "no columns to show";
             break;
@@ -285,6 +247,9 @@ bool DataBox::setData(const QModelIndex &index, const QVariant &value, int role)
         case 7: // 95% интервал
             cl_data[index.row()].RRInt = value.toString();
             break;
+        case 8:
+            cl_data[index.row()].geneName = value.toString();
+            break;
         default:
             qDebug() << "no columns to show";
             break;
@@ -331,9 +296,9 @@ QVariant DataBox::headerData(int section, Qt::Orientation orientation, int role)
                 break;
         case 5: str = QObject::tr("Больные частота");
                 break;
-        case 6: str = QObject::tr("Отношение шансов(RR)");
+        case 6: str = QObject::tr("Отношение шансов(OR)");
                 break;
-        case 7: str = QObject::tr("95% доверит. инт.(RR)");
+        case 7: str = QObject::tr("95% доверит. инт.(OR)");
                 break;
         default :
             qDebug() << "ERROR: No such column";

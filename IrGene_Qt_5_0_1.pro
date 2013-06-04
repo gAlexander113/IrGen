@@ -1,6 +1,7 @@
 QT  += \
     widgets \
-    xml
+    xml \
+    sql
 
 SOURCES += \
     main.cpp \
@@ -9,7 +10,8 @@ SOURCES += \
     genedialog.cpp \
     statdialog.cpp \
     graphics.cpp \
-    excelchoicedialog.cpp
+    excelchoicedialog.cpp \
+    logindialogcl.cpp
 
 HEADERS += \
     main.h \
@@ -24,12 +26,16 @@ HEADERS += \
     statdialog.h \
     graphics.h \
     exceldialog.h \
-    excelchoicedialog.h
+    excelchoicedialog.h \
+    databaseinterface.h \
+    logindialog.h \
+    logindialogcl.h
 
 FORMS += \
     forms/mainwindow.ui \
     forms/genechoicedialog.ui \
     forms/statwindow.ui \
-    forms/exceldialog.ui
+    forms/exceldialog.ui \
+    forms/logindialog.ui
 
 

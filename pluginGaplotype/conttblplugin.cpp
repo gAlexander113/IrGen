@@ -158,6 +158,7 @@ void ContTblPlugin::tblResult(DataBox *data, QString nameGene) // nameGene: "nam
             default:
                 qDebug() << "no columns to show";
             }
+            var.geneName = nameGene;
         }
         data->setDataToModel(var);
     }

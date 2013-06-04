@@ -18,13 +18,15 @@ void StatDialog::setData(QByteArray arr)
 
 void StatDialog::slotSetData()
 {
+    listWidget->clear();
+
     QDataStream stream(&cl_data, QIODevice::ReadOnly);
 
-    QVector<double> tmparray;
+    QVector<QString> tmparray;
 
     while (!stream.atEnd())
     {
-        double tmp;
+        QString tmp;
         stream >> tmp;
         tmparray.push_back(tmp);
     }
@@ -34,23 +36,32 @@ void StatDialog::slotSetData()
     //          3: numRows : needed for Ka
     //          4: Ka
 
-    if (tmparray[0] == -1)
+    QListWidgetItem *pitem = 0;
+    if (tmparray[0].contains("-1"))
     {
         QString str = tr("Не работает");
-        leXi->setText(str);
-        lePhi->setText(str);
-        leC->setText(str);
-        leP->setText(str);       
+        for (int i = 0; i < tmparray.size() - 1; ++i)
+        {
+            if (tmparray[i].contains("-"))
+            {
+                QStringList tmplist = tmparray[i].split("-");
+                pitem = new QListWidgetItem(tmplist[0] + "- " + str, listWidget);
+            }
+        }
     }
     else
     {
-        leXi->setText(QString::number(tmparray[0]));
-        lePhi->setText(QString::number(tmparray[1]));
-        leC->setText(QString::number(tmparray[2]));
+        for (int i = 0; i < tmparray.size() - 2; ++i)
+        {
+            if (tmparray[i].contains("-"))
+            {
+                pitem = new QListWidgetItem(tmparray[i], listWidget);
+            }
+        }
     }
     qDebug() << "statDialog " << tmparray[4] << tmparray.size();
-    if (tmparray[3] == 2)
-        leKa->setText(QString::number(tmparray[4]));
+    if (tmparray[3].toInt() == 2)
+        pitem = new QListWidgetItem(tmparray[4], listWidget);
     else
-        leKa->setText("");
+        pitem = new QListWidgetItem("Ka     - ", listWidget);
 }

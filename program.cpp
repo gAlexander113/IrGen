@@ -21,7 +21,7 @@ Program::Program(QMainWindow *pwgt)
     connect(btnImport, SIGNAL(triggered()), this, SLOT(slotImportData()));
     connect(action_GroupGom, SIGNAL(triggered()), this, SLOT(slotGroup()));
     connect(action, SIGNAL(triggered()), this, SLOT(slotDrawGraph()));
-
+//    connect(actBuidTree, SIGNAL(triggered()), this, SLOT(slotBuildTree()));
 
     cl_status = new QLabel;
     statBar->addWidget(cl_status);
@@ -73,6 +73,13 @@ void Program::loadPlugins()
                 menu_4->addAction(pact);
             }
             else
+                if (str == tr("Метод невзвешенного попарного среднего(UPGMA)"))
+                {
+                    QAction *pact = new QAction(str, pobj);
+                    connect(pact, SIGNAL(triggered()), this, SLOT(slotBuildTree()));
+                    menu_5->addAction(pact);
+                }
+            else
             {
                 /************************/
                 /* Contingency tables   */
@@ -98,6 +105,17 @@ void Program::loadPlugins()
         }
         else
             qDebug() << "this is not StatInterface";
+
+        DataBaseInterface *pdbInt = qobject_cast<DataBaseInterface*> (pobj);
+        if (pdbInt)
+        {
+            QString str = pdbInt->name();
+            QAction *pact = new QAction(str, pobj);
+            connect(pact, SIGNAL(triggered()), this, SLOT(slotOpenDB()));
+            menuDataBases->addAction(pact);
+        }
+        else
+            qDebug() << "this is not DBInt";
     }
 }
 
@@ -109,36 +127,58 @@ void Program::showData()
     treeInfo->setHeaderLabels(lst);
 
     QTreeWidgetItem *pmainItem = new QTreeWidgetItem(treeInfo);
-    pmainItem->setText(0, "Гены");
+    pmainItem->setText(0, "Популяции");
 
-    QTreeWidgetItem *pgeneitem = 0, *pitem = 0;
-    for (int i = 0; i < cl_data->numGenes(); ++i)
+    QTreeWidgetItem *ppopitem = 0, *pgeneitem = 0, *pitem = 0;
+    for (int i = 0; i < cl_data->numPopulations(); ++i)
     {
-        pgeneitem = new QTreeWidgetItem(pmainItem);
-        pgeneitem->setText(0, cl_data->nameGene(i));
-        for (int j = 0; j < cl_data->numAlleles(i); ++j)
+        ppopitem = new QTreeWidgetItem(pmainItem);
+        ppopitem->setText(0, cl_data->namePopulation(i));
+        cl_data->setActivePopulation(i);
+        for (int k = 0; k < cl_data->numGenes(); ++k)
         {
-            pitem = new QTreeWidgetItem(pgeneitem);
-            pitem->setText(0, cl_data->allele(i, j));
-            pitem->setText(1, cl_data->numH(i, j));
-            pitem->setText(2, cl_data->numI(i, j));
+            pgeneitem = new QTreeWidgetItem(ppopitem);
+            pgeneitem->setText(0, cl_data->nameGene(k));
+            for (int j = 0; j < cl_data->numAlleles(k); ++j)
+            {
+                pitem = new QTreeWidgetItem(pgeneitem);
+                pitem->setText(0, cl_data->allele(k, j));
+                pitem->setText(1, cl_data->numH(k, j));
+                pitem->setText(2, cl_data->numI(k, j));
+            }
         }
     }
-    treeInfo->setColumnWidth(0, 100);
+    treeInfo->setColumnWidth(0, 130);
     treeInfo->resizeColumnToContents(1);
     treeInfo->resizeColumnToContents(2);
 }
 
-void Program::slotOpen() // может отображение необработанных данных стоит убрать
+void Program::slotOpen()
 {
     QString filePath = QFileDialog::getOpenFileName(0, QObject::tr("Открыть файл"), "", "*.xml");
 
     cl_data->loadData(filePath);
-//    cl_data->output();
+    cl_data->output();
 
     showData();
 
     cl_status->setText(tr("Данные загруженны."));
+}
+
+void Program::slotOpenDB()
+{
+    QAction *pact = qobject_cast<QAction*> (sender());
+    DataBaseInterface *pdbInt = qobject_cast<DataBaseInterface*>(pact->parent());
+
+    LoginDialogCl *dialog = new LoginDialogCl;
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        pdbInt->setUser(dialog->getname(), dialog->getpass());
+        pdbInt->getQuery();
+    }
+    delete dialog;
+
+//    cl_data->loadData(query);
 }
 
 void Program::slotImportData()
@@ -162,7 +202,6 @@ void Program::slotImportData()
         showData();
     }
     delete dialog;
-
 }
 
 void Program::slotSave()
@@ -176,7 +215,26 @@ void Program::slotLoadContTable()
     {
         QMessageBox::information(0, tr("Ошибка"), tr("Загрузите данные!"));
         return;
+    }    
+
+    QTreeWidgetItem *pitem = treeInfo->currentItem();
+    if (!treeInfo->selectionModel()->hasSelection() || (pitem->parent() == NULL || pitem->parent()->text(0) != "Популяции"))
+    {
+        QMessageBox::information(0, tr("Ошибка"), tr("Выберите популяцию для анализа!"));
+        return;
     }
+    else
+    {
+        QTreeWidgetItem *pBatiaItem = pitem->parent();
+        for (int i = 0; i < pBatiaItem->childCount(); ++i)
+            if (pitem->text(0) == pBatiaItem->child(i)->text(0))
+            {
+                cl_data->setActivePopulation(i);
+                break;
+            }
+        qDebug() << "текущая популяция" << cl_data->activePopulation();
+    }
+
 
     QAction *pact = qobject_cast<QAction*> (sender());
 
@@ -335,7 +393,72 @@ void Program::slotGroup()
 void Program::slotDrawGraph()
 {
     cl_graphics->drawGraphFrequency(cl_data);
+    cl_graphics->resize(500, 600);
     cl_graphics->show();
 }
 
+void Program::slotBuildTree()
+{
+    QAction *pact = qobject_cast<QAction*>(sender());
 
+    ContInterface *pI = qobject_cast<ContInterface*>(pact->parent());
+
+    int curSelectedPop = cl_data->activePopulation();
+
+    QVector< QVector<QString> > nglst;
+
+    for (int i = 0; i < cl_data->numPopulations(); ++i)
+    {
+        QVector<QString> vec;
+        cl_data->setActivePopulation(i);
+        for (int i = 0; i < cl_data->numGenes(); ++i)
+            vec.push_back(cl_data->nameGene(i));
+        nglst.push_back(vec);
+    }
+
+    QVector<QString> strlst = geneNameList(nglst);
+    QStringList nameGenes;
+    for (int i = 0; i < strlst.size(); ++i)
+    {
+        nameGenes.push_back(strlst[i]);
+        qDebug() << strlst[i];
+    }
+
+    GeneDialog *dialog = new GeneDialog;
+    dialog->setMulitpleSelection(true);
+    dialog->setGeneList(nameGenes);
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        qDebug() << pI->name();
+        pI->tblResult(cl_data, dialog->getGene());
+    }
+    delete dialog;
+
+    cl_data->setActivePopulation(curSelectedPop);
+}
+
+QVector<QString> Program::geneNameList(QVector<QVector<QString> > nglst)
+{
+    QVector<QString> minDict = nglst[0];
+
+    for (int k = 1; k < nglst.size(); ++k)
+    {
+        int i = 0;
+        while (i < minDict.size())
+        {
+            int f = 0;
+            for (int j = 0; j < nglst[k].size(); ++j)
+                if (minDict[i] == nglst[k].at(j))
+                {
+                    f = 1;
+                    break;
+                }
+            if (f)
+                i++;
+            else
+                minDict.remove(i);
+        }
+    }
+
+    return minDict;
+}

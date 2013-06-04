@@ -6,7 +6,7 @@
 #include <QString>
 #include <QtCore/qmath.h>
 
-class ContInterface //интерфейс для таблиц сопряженностей
+class ContInterface
 {
 public:
     virtual QString name() const = 0;
@@ -16,3 +16,6 @@ public:
 Q_DECLARE_INTERFACE(ContInterface, "simple.com.IrGene_Qt_5_0_1.ContInterface")
 
 #endif // CONTTBLINTERFACE_H
+
+
+//интерфейс для таблиц сопряженностей

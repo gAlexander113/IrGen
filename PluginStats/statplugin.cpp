@@ -13,7 +13,7 @@ QByteArray StatPlugin::statistics(DataBox *data)
 {
     double Xi, res = 0;
 
-    int numHealth = 0, numIll = 0; // R наблюдаемое
+    int numHealth = 0, numIll = 0;
     int all;
     QModelIndex index1, index2, index3, index4;
     for (int i = 0; i < data->rowCount(QModelIndex()); ++i)
@@ -76,7 +76,10 @@ QByteArray StatPlugin::statistics(DataBox *data)
 
     QByteArray encodedData;
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
-    stream << Xi << Phi << C << num << Ka;
+    stream << "Xi   - " + QString::number(Xi)
+           << "Phi  - " + QString::number(Phi)
+           << "C    - " + QString::number(C) << QString::number(num)
+           << "Ka   - " + QString::number(Ka);
 
     return encodedData;
 }

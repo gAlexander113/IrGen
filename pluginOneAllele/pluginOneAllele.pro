@@ -2,7 +2,8 @@ TEMPLATE = lib
 CONFIG  += plugin
 QT      += \
     widgets \
-    xml
+    xml \
+    sql
 HEADERS += \
     conttblpugin.h \
     ../IrGene_Qt_5_0_1/conttblinterface.h

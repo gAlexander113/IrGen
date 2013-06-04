@@ -17,9 +17,9 @@ struct Gene
     QVector<AlleleElement> alleles;
 };
 
-
 struct DataForAlleles
 {
+    QString geneName;
     QString name;
     int group;
     int numIll;
@@ -28,6 +28,12 @@ struct DataForAlleles
     double freakHealthy;
     double RR;
     QString RRInt; // format: "[double;double]"
+};
+
+struct Population
+{
+    QString name;
+    QVector<Gene> genes;
 };
 
 

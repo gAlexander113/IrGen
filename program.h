@@ -10,6 +10,8 @@
 #include "statdialog.h"
 #include "graphics.h"
 #include "excelchoicedialog.h"
+#include "databaseinterface.h"
+#include "logindialogcl.h"
 
 class Program : public QMainWindow, public Ui::MainWindow
 {
@@ -22,19 +24,21 @@ private:
 
     void loadPlugins();
     void showData();
+    QVector<QString> geneNameList(QVector< QVector<QString> > nglst);
 public:
     Program(QMainWindow *pwgt = 0);
     ~Program();
 
 private slots:
     void slotOpen();
+    void slotOpenDB();
     void slotImportData();
     void slotSave();
     void slotLoadContTable();
     void slotLoadStatistics();
     void slotGroup();
-public slots:
-    void slotDrawGraph();
+    void slotBuildTree();
+    void slotDrawGraph();    
 };
 
 #endif // PROGRAM_H
